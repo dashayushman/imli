@@ -417,10 +417,10 @@ class Trainer:
 
 
 semhash_featurizer = SemhashFeaturizer()
-dataset = Dataset("/Users/pondenkandath/projects/imli/data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
+dataset = Dataset("./data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
 splits = dataset.get_splits()
 
-trainer = Trainer(splits, semhash_featurizer, lang="en", path="~/projects/imli/data/plots",
+trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots",
                   name="Ubuntu")
 
 trainer.train()
