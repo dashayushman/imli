@@ -410,6 +410,8 @@ class Trainer:
         for i, c in zip(indices, clf_names):
             plt.text(-.3, i, c)
 
+        plt.savefig("./data/plots/plots.png")
+
         plt.show()
 
 
