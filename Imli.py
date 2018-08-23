@@ -234,33 +234,33 @@ class Trainer:
                                         # feature_names=feature_names))
                 results.append(self.benchmark(LinearSVC(penalty=penalty,
                                                     dual=False,tol=1e-3),
-                                         X_train, y_train, X_test, y_test, target_names))
+                                         X_train, y_train, X_test, y_test))
 
                 # Train SGD model
                 results.append(self.benchmark(SGDClassifier(alpha=.0001, n_iter=50,
                                                        penalty=penalty),
-                                         X_train, y_train, X_test, y_test, target_names))
+                                         X_train, y_train, X_test, y_test))
 
             # Train SGD with Elastic Net penalty
             print('=' * 80)
             print("Elastic-Net penalty")
             results.append(self.benchmark(SGDClassifier(alpha=.0001, n_iter=50,
                                                    penalty="elasticnet"),
-                                     X_train, y_train, X_test, y_test, target_names))
+                                     X_train, y_train, X_test, y_test))
 
             # Train NearestCentroid without threshold
             print('=' * 80)
             print("NearestCentroid (aka Rocchio classifier)")
             results.append(self.benchmark(NearestCentroid(),
-                                     X_train, y_train, X_test, y_test, target_names))
+                                     X_train, y_train, X_test, y_test))
 
             # Train sparse Naive Bayes classifiers
             print('=' * 80)
             print("Naive Bayes")
             results.append(self.benchmark(MultinomialNB(alpha=.01),
-                                     X_train, y_train, X_test, y_test, target_names))
+                                     X_train, y_train, X_test, y_test))
             results.append(self.benchmark(BernoulliNB(alpha=.01),
-                                     X_train, y_train, X_test, y_test, target_names))
+                                     X_train, y_train, X_test, y_test))
 
             print('=' * 80)
             print("LinearSVC with L1-based feature selection")
@@ -272,14 +272,15 @@ class Trainer:
                                           ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False,
                                                                                           tol=1e-3))),
                                           ('classification', LinearSVC(penalty="l2"))]),
-                                     X_train, y_train, X_test, y_test, target_names))
+                                     X_train, y_train, X_test, y_test))
            # print(grid.grid_scores_)
            #KMeans clustering algorithm 
             print('=' * 80)
             print("KMeans")
-            results.append(self.benchmark(KMeans(n_clusters=2, init='k-means++', max_iter=300,
-                        verbose=0, random_state=0, tol=1e-4),
-                                     X_train, y_train, X_test, y_test, target_names))
+            #results.append(self.benchmark(KMeans(n_clusters=2,
+            # init='k-means++', max_iter=300,
+          #              verbose=0, random_state=0, tol=1e-4),
+          #                           X_train, y_train, X_test, y_test))
 
 
 
@@ -287,13 +288,14 @@ class Trainer:
             print("LogisticRegression")
             #kfold = model_selection.KFold(n_splits=2, random_state=0)
             #model = LinearDiscriminantAnalysis()
-            results.append(benchmark(LogisticRegression(C=1.0, class_weight=None, dual=False,
+            results.append(self.benchmark(LogisticRegression(C=1.0,
+                                                         class_weight=None, dual=False,
                   fit_intercept=True, intercept_scaling=1, max_iter=100,
                   multi_class='ovr', n_jobs=1, penalty='l2', random_state=None,
                   solver='liblinear', tol=0.0001, verbose=0, warm_start=False),
-                                     X_train, y_train, X_test, y_test, target_names))
+                                     X_train, y_train, X_test, y_test))
 
-            plot_results(results)
+            self.plot_results(results)
     
     
     def benchmark(self, clf, X_train, y_train, X_test, y_test,
@@ -333,7 +335,7 @@ class Trainer:
         clf_descr = str(clf).split('(')[0]
         return clf_descr, score, train_time, test_time
     
-    def plot_results(results):
+    def plot_results(self, results):
         # make some plots
         indices = np.arange(len(results))
 
@@ -365,7 +367,8 @@ class Trainer:
 
 
 semhash_featurizer = SemhashFeaturizer()
-dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus.json")
+dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus"
+                  ".json", ratio=0.2)
 splits = dataset.get_splits()
 
 trainer = Trainer(splits, semhash_featurizer, lang="en", path="/home/dash/projects/imli/data/plots", 
