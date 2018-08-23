@@ -117,7 +117,7 @@ class Dataset():
         sentences = list(set(sentences))
         return sentences
 
-    def _augment_split(self, X_train, y_train, num_samples=10):
+    def _augment_split(self, X_train, y_train, num_samples=100):
         Xs, ys = [], []
         for X, y in zip(X_train, y_train):
             tmp_x = self._augment_sentence(X, num_samples)
@@ -153,13 +153,13 @@ class Dataset():
 # In[98]:
 
 
-dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus.json", augment=True)
-splits = dataset.get_splits()
-for split in splits:
-    print("X train", split["train"]["X"][: 2])
-    print("y train", split["train"]["y"][:2])
-    print("X test", split["test"]["X"][: 2])
-    print("y test", split["test"]["y"][:2])
+# dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus.json", augment=True)
+# splits = dataset.get_splits()
+# for split in splits:
+#     print("X train", split["train"]["X"][: 2])
+#     print("y train", split["train"]["y"][:2])
+#     print("X test", split["test"]["X"][: 2])
+#     print("y test", split["test"]["y"][:2])
 
 
 # In[99]:
@@ -417,11 +417,10 @@ class Trainer:
 
 
 semhash_featurizer = SemhashFeaturizer()
-dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus"
-                  ".json", ratio=0.2)
+dataset = Dataset("/Users/pondenkandath/projects/imli/data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
 splits = dataset.get_splits()
 
-trainer = Trainer(splits, semhash_featurizer, lang="en", path="/home/dash/projects/imli/data/plots", 
+trainer = Trainer(splits, semhash_featurizer, lang="en", path="~/projects/imli/data/plots",
                   name="Ubuntu")
 
 trainer.train()
