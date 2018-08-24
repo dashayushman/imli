@@ -3,13 +3,13 @@
 
 # In[96]:
 
-
+import csv
 import os
 import json
 import spacy
 import math
 import random
-
+from tqdm import tqdm
 import numpy as np
 
 from time import time
@@ -67,14 +67,16 @@ def get_spacy_model(lang="en"):
 
 # In[97]:
 
-class Dataset():
+
+
+class MeraDataset():
 
     def __init__(self, dataset_path, n_splits=3, ratio=0.3, augment=False):
         self.dataset_path = dataset_path
         self.augment = augment
         self.n_splits = n_splits
         self.ratio = ratio
-        self.X, self.y = self.load()
+        self.X_test, self.y_test, self.X_train, self.y_train = self.load()
         self.keyboard_cartesian = {'q': {'x': 0, 'y': 0}, 'w': {'x': 1, 'y': 0}, 'e': {'x': 2, 'y': 0},
                                    'r': {'x': 3, 'y': 0}, 't': {'x': 4, 'y': 0}, 'y': {'x': 5, 'y': 0},
                                    'u': {'x': 6, 'y': 0}, 'i': {'x': 7, 'y': 0}, 'o': {'x': 8, 'y': 0},
@@ -85,7 +87,7 @@ class Dataset():
                                    'h': {'x': 5, 'y': 1}, 'j': {'x': 6, 'y': 1}, 'k': {'x': 7, 'y': 1},
                                    'l': {'x': 8, 'y': 1}, 'v': {'x': 3, 'y': 2}, 'n': {'x': 5, 'y': 2}, }
         self.nearest_to_i = self.get_nearest_to_i(self.keyboard_cartesian)
-        self.splits = self.stratified_split(self.X, self.y, self.n_splits, self.ratio, self.augment)
+        self.splits = self.stratified_split()
 
 
     def get_nearest_to_i(self, keyboard_cartesian):
@@ -115,9 +117,9 @@ class Dataset():
         for _ in range(num_samples):
             sentences.append(' '.join([self._shuffle_word(item) for item in sentence.split(' ')]))
         sentences = list(set(sentences))
-        return sentences
+        return sentences + [sentence]
 
-    def _augment_split(self, X_train, y_train, num_samples=100):
+    def _augment_split(self, X_train, y_train, num_samples=1000):
         Xs, ys = [], []
         for X, y in zip(X_train, y_train):
             tmp_x = self._augment_sentence(X, num_samples)
@@ -125,13 +127,66 @@ class Dataset():
         return Xs, ys
 
     def load(self):
+        with open('test.csv') as csvfile:
+            readCSV = csv.reader(csvfile, delimiter='\t')
+            all_rows = list(readCSV)
+            X_test = [a[0] for a in all_rows]
+            y_test = [a[1] for a in all_rows]
+
+        with open('train.csv') as csvfile:
+            readCSV = csv.reader(csvfile, delimiter='\t')
+            all_rows = list(readCSV)
+            X_train = [a[0] for a in all_rows]
+            y_train = [a[1] for a in all_rows]
+        return X_test, y_test, X_train, y_train
+
+    def process_sentence(self, x):
+        clean_tokens = []
+        doc = get_spacy_model("en")(x)
+        for token in doc:
+            if not token.is_stop:
+                clean_tokens.append(token.lemma_)
+        return " ".join(clean_tokens)
+
+    def process_batch(self, X):
+        return [self.process_sentence(a) for a in tqdm(X)]
+
+    def stratified_split(self):
+
+        self.X_train, self.y_train = self._augment_split(self.X_train,
+                                                         self.y_train)
+        self.X_train = self.process_batch(self.X_train)
+        self.X_test = self.process_batch(self.X_test)
+
+        #self.X_test, self.y_test = self._augment_split(self.X_test,
+        # self.y_test)
+
+        splits = [{"train": {"X": self.X_train, "y": self.y_train},
+                   "test": {"X": self.X_test, "y": self.y_test}}]
+        return splits
+
+    def get_splits(self):
+        return self.splits
+
+
+class Dataset():
+    
+    def __init__(self, dataset_path, n_splits=3, ratio=0.3, augment=False):
+        self.dataset_path = dataset_path
+        self.augment = augment
+        self.n_splits = n_splits
+        self.ratio = ratio
+        self.X, self.y = self.load()
+        self.splits = self.stratified_split(self.X, self.y, self.n_splits, self.ratio)
+    
+    def load(self):
         with open(self.dataset_path, "r") as f:
             dataset = json.load(f)
             X = [sample["text"] for sample in dataset["sentences"]]
             y = [sample["intent"] for sample in dataset["sentences"]]
         return X, y
-
-    def stratified_split(self, X, y, n_splits=10, test_size=0.2, augment=False):
+    
+    def stratified_split(self, X, y, n_splits=10, test_size=0.2):
         skf = StratifiedShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=42)
         skf.get_n_splits(X, y)
         splits = []
@@ -139,27 +194,28 @@ class Dataset():
             # print("TRAIN:", train_index, "\n\n", "TEST:", test_index, "\n\n")
             X_train, X_test = [X[i] for i in train_index], [X[i] for i in test_index]
             y_train, y_test = [y[i] for i in train_index], [y[i] for i in test_index]
-            # Augmentation code
-            if augment:
-                X_train, y_train = self._augment_split(X_train, y_train)
+            # add augmentation code here
             splits.append({"train": {"X": X_train, "y": y_train},
                            "test": {"X": X_test, "y": y_test}})
         return splits
-
+    
     def get_splits(self):
         return self.splits
+
+
+
 
 
 # In[98]:
 
 
-# dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus.json", augment=True)
-# splits = dataset.get_splits()
-# for split in splits:
-#     print("X train", split["train"]["X"][: 2])
-#     print("y train", split["train"]["y"][:2])
-#     print("X test", split["test"]["X"][: 2])
-#     print("y test", split["test"]["y"][:2])
+dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus.json")
+splits = dataset.get_splits()
+for split in splits:
+    print("X train", split["train"]["X"][: 2])
+    print("y train", split["train"]["y"][:2])
+    print("X test", split["test"]["X"][: 2])
+    print("y test", split["test"]["y"][:2])
 
 
 # In[99]:
@@ -183,7 +239,8 @@ class SemhashFeaturizer:
     
     def get_vectorizer(self):
         return TfidfVectorizer(norm='l2',min_df=0, use_idf=True, smooth_idf=False,
-                               sublinear_tf=True, tokenizer=semhash_tokenizer)
+                               sublinear_tf=True,
+                               tokenizer=semhash_tokenizer, )
     
     def fit(self, X, *args, **kwargs):
         self.vectorizer.fit(X)
@@ -252,7 +309,10 @@ class Trainer:
     
     def train(self):
         
-        parameters_mlp={'hidden_layer_sizes':[(100,50),(300,100,50),(200,100)]}
+        parameters_mlp={'hidden_layer_sizes':[(100,50),(300,100,50),(200,
+                                                                     100)],
+                        "solver": ["sgd"], "activation": ["relu", "tanh"],
+                        "learning_rate": ["adaptive"]}
         parameters_RF={ "n_estimators" : [50,60,70], "min_samples_leaf" : [1, 2]}
         k_range = list(range(1, 11))
         parameters_knn = {'n_neighbors':k_range}
@@ -264,14 +324,20 @@ class Trainer:
             results = []
             #alphas = np.array([1,0.1,0.01,0.001,0.0001,0])
             knn=KNeighborsClassifier(n_neighbors=5)
+
             for clf, name in [  
-                    (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
-                    (GridSearchCV(knn,parameters_knn, cv=10),"gridsearchknn"),
-                    (GridSearchCV(MLPClassifier(activation='relu'), parameters_mlp, cv=3),"gridsearchmlp"),
-                    (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
-                    (GridSearchCV(RandomForestClassifier(n_estimators=10),parameters_RF, cv=10),"gridsearchRF")]:
-                print('=' * 80)
-                print(name)
+                    #(RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge "
+            #                                                    "Classifier"),
+                    #(GridSearchCV(knn,parameters_knn, cv=10),"gridsearchknn"),
+                    (GridSearchCV(MLPClassifier(verbose=True, max_iter=500),
+                                  parameters_mlp, cv=3),"gridsearchmlp"),
+                    #(PassiveAggressiveClassifier(n_iter=50),
+            # "Passive-Aggressive"),
+                    #(GridSearchCV(RandomForestClassifier(n_estimators=10),
+            # parameters_RF, cv=10),"gridsearchRF")
+            ]:
+                #print('=' * 80)
+                #print(name)
                 results.append(self.benchmark(clf, X_train, y_train, X_test,
                                           y_test))
 
@@ -282,10 +348,11 @@ class Trainer:
                 #grid=(GridSearchCV(LinearSVC,parameters_Linearsvc, cv=10),"gridsearchSVC")
                 #results.append(benchmark(LinearSVC(penalty=penalty), X_train, y_train, X_test, y_test, target_names,
                                         # feature_names=feature_names))
+                """
                 results.append(self.benchmark(LinearSVC(penalty=penalty,
                                                     dual=False,tol=1e-3),
                                          X_train, y_train, X_test, y_test))
-
+                """
                 # Train SGD model
                 results.append(self.benchmark(SGDClassifier(alpha=.0001, n_iter=50,
                                                        penalty=penalty),
@@ -297,27 +364,29 @@ class Trainer:
             results.append(self.benchmark(SGDClassifier(alpha=.0001, n_iter=50,
                                                    penalty="elasticnet"),
                                      X_train, y_train, X_test, y_test))
-
+            """
             # Train NearestCentroid without threshold
             print('=' * 80)
             print("NearestCentroid (aka Rocchio classifier)")
             results.append(self.benchmark(NearestCentroid(),
                                      X_train, y_train, X_test, y_test))
-
-            # Train sparse Naive Bayes classifiers
-            print('=' * 80)
-            print("Naive Bayes")
-            results.append(self.benchmark(MultinomialNB(alpha=.01),
-                                     X_train, y_train, X_test, y_test))
-            results.append(self.benchmark(BernoulliNB(alpha=.01),
-                                     X_train, y_train, X_test, y_test))
+            try:
+                # Train sparse Naive Bayes classifiers
+                print('=' * 80)
+                print("Naive Bayes")
+                results.append(self.benchmark(MultinomialNB(alpha=.01),
+                                         X_train, y_train, X_test, y_test))
+                results.append(self.benchmark(BernoulliNB(alpha=.01),
+                                         X_train, y_train, X_test, y_test))
+            except:
+                continue
 
             print('=' * 80)
             print("LinearSVC with L1-based feature selection")
             # The smaller C, the stronger the regularization.
             # The more regularization, the more sparsity.
 
-
+            
             results.append(self.benchmark(Pipeline([
                                           ('feature_selection', SelectFromModel(LinearSVC(penalty="l1", dual=False,
                                                                                           tol=1e-3))),
@@ -344,7 +413,7 @@ class Trainer:
                   multi_class='ovr', n_jobs=1, penalty='l2', random_state=None,
                   solver='liblinear', tol=0.0001, verbose=0, warm_start=False),
                                      X_train, y_train, X_test, y_test))
-
+            """
             self.plot_results(results)
     
     
@@ -417,11 +486,41 @@ class Trainer:
 
 
 semhash_featurizer = SemhashFeaturizer()
-dataset = Dataset("/Users/pondenkandath/projects/imli/data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
+dataset = MeraDataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus"
+                  ".json", ratio=0.2)
 splits = dataset.get_splits()
 
-trainer = Trainer(splits, semhash_featurizer, lang="en", path="~/projects/imli/data/plots",
+trainer = Trainer(splits, semhash_featurizer, lang="en",
+         path="/home/dash/projects/imli/data/plots",
                   name="Ubuntu")
 
 trainer.train()
 
+
+"""
+semhash_featurizer = SemhashFeaturizer()
+
+split = {}
+
+with open('test.csv') as csvfile:
+    readCSV = csv.reader(csvfile, delimiter='\t')
+    all_rows = list(readCSV)
+    X_test = [a[0] for a in all_rows]
+    y_test = [a[1] for a in all_rows]
+
+with open('train.csv') as csvfile:
+    readCSV = csv.reader(csvfile, delimiter='\t')
+    all_rows = list(readCSV)
+    X_train = [a[0] for a in all_rows]
+    y_train = [a[1] for a in all_rows]
+
+
+splits = [{"train": {"X": X_train, "y": y_train},
+                           "test": {"X": X_test, "y": y_test}}]
+
+trainer = Trainer(splits, semhash_featurizer, lang="en",
+         path="/home/dash/projects/imli/data/plots",
+                  name="Ubuntu")
+
+trainer.train()
+"""
