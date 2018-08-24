@@ -48,6 +48,7 @@ from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
+import pickle
 
 nlp_spacy_en = None
 nlp_spacy_es = None
@@ -232,6 +233,16 @@ X_ = w2v_featurizer.transform(X)
 # In[106]:
 
 
+def save_file(file_name, results):
+    with open(file_name, 'wb') as handle:
+        pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_file(name):
+    with open('./outlook.txt', 'rb') as handle:
+        file_data = pickle.load(handle)
+        print(file_data)
+
+
 class Trainer:
     def __init__(self, splits, featurizer, path="data/plots", lang="en", name="default"):
         self.path = os.path.join(path, name)
@@ -391,6 +402,7 @@ class Trainer:
 
         results = [[x[i] for x in results] for i in range(4)]
 
+        save_file("./outlook.txt", results)
         clf_names, score, training_time, test_time = results
         training_time = np.array(training_time) / np.max(training_time)
         test_time = np.array(test_time) / np.max(test_time)
@@ -414,10 +426,16 @@ class Trainer:
 
         plt.show()
 
+    def save_to_file():
+        with open("./oulook.txt", "w") as text_file:
+            print("test", file=text_file)
 
 # In[107]:
 
+    # class Results():
 
+
+save_file("test.txt",{"hello":42})
 semhash_featurizer = SemhashFeaturizer()
 dataset = Dataset("./data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
 splits = dataset.get_splits()
@@ -427,3 +445,4 @@ trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots",
 
 trainer.train()
 
+load_file("./otulook.txt")
