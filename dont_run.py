@@ -1,3 +1,4 @@
+
 import json
 import math
 import random
@@ -88,7 +89,7 @@ class Dataset():
     def get_splits(self):
         return self.splits
 
-dataset = Dataset("/Users/pondenkandath/projects/imli/data/datasets/AskUbuntuCorpus.json",
+dataset = Dataset("./data/datasets/AskUbuntuCorpus.json",
                   augment=True)
 splits = dataset.get_splits()
 for split in splits:

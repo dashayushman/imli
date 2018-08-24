@@ -479,6 +479,8 @@ class Trainer:
         for i, c in zip(indices, clf_names):
             plt.text(-.3, i, c)
 
+        plt.savefig("./data/plots/plots.png")
+
         plt.show()
 
 
@@ -486,12 +488,20 @@ class Trainer:
 
 
 semhash_featurizer = SemhashFeaturizer()
+<<<<<<< HEAD
 dataset = MeraDataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus"
                   ".json", ratio=0.2)
 splits = dataset.get_splits()
 
 trainer = Trainer(splits, semhash_featurizer, lang="en",
          path="/home/dash/projects/imli/data/plots",
+"""
+dataset = Dataset("./data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
+splits = dataset.get_splits()
+
+trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots",
+>>>>>>> a7eddb3e0d2b688a6d6c850a21c89a99f7e8bd05
+"""
                   name="Ubuntu")
 
 trainer.train()
