@@ -96,7 +96,7 @@ class MeraDataset():
         for i in keyboard_cartesian.keys():
             nearest_to_i[i] = []
             for j in keyboard_cartesian.keys():
-                if self._euclidean_distance(i, j) < 1.2:
+                if self._euclidean_distance(i, j) > 1.2:
                     nearest_to_i[i].append(j)
         return nearest_to_i
 
@@ -210,7 +210,7 @@ class Dataset():
 # In[98]:
 
 
-dataset = Dataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus.json")
+dataset = Dataset("./data/datasets/AskUbuntuCorpus.json")
 splits = dataset.get_splits()
 for split in splits:
     print("X train", split["train"]["X"][: 2])
@@ -491,7 +491,7 @@ class Trainer:
         for i, c in zip(indices, clf_names):
             plt.text(-.3, i, c)
 
-        plt.savefig("./data/plots/plots.png")
+        # plt.savefig("./data/plots/plots.png")
 
         plt.show()
 
@@ -506,27 +506,19 @@ class Trainer:
 
 save_file("test.txt",{"hello":42})
 semhash_featurizer = SemhashFeaturizer()
-<<<<<<< HEAD
-dataset = MeraDataset("/home/dash/projects/imli/data/datasets/AskUbuntuCorpus"
+dataset = MeraDataset("./data/datasets/AskUbuntuCorpus"
                   ".json", ratio=0.2)
 splits = dataset.get_splits()
 
-trainer = Trainer(splits, semhash_featurizer, lang="en",
-         path="/home/dash/projects/imli/data/plots",
-"""
+trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots")#
 dataset = Dataset("./data/datasets/AskUbuntuCorpus.json", n_splits=2, ratio=0.66, augment=False)
 splits = dataset.get_splits()
-
 trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots",
->>>>>>> a7eddb3e0d2b688a6d6c850a21c89a99f7e8bd05
-"""
                   name="Ubuntu")
 
 trainer.train()
 
-<<<<<<< HEAD
 load_file("./otulook.txt")
-=======
 
 """
 semhash_featurizer = SemhashFeaturizer()
@@ -555,4 +547,3 @@ trainer = Trainer(splits, semhash_featurizer, lang="en",
 
 trainer.train()
 """
->>>>>>> 0ff29fd5d08cb019877cd087451ccc9cdfcda7cc

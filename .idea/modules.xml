@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$USER_HOME$/PycharmProjects/playground/.idea/playground.iml" filepath="$USER_HOME$/PycharmProjects/playground/.idea/playground.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/imli.iml" filepath="$PROJECT_DIR$/.idea/imli.iml" />
     </modules>
   </component>
 </project>
