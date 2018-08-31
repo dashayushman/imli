@@ -553,7 +553,6 @@ class Trainer:
 
         score = metrics.accuracy_score(y_test, pred)
         print("accuracy:   %0.3f" % score)
-        #print("Accuracy: %0.3f (+/- %0.3f)" % (score.mean(), score.std() * 2))
 
         if hasattr(clf, 'coef_'):
             print("dimensionality: %d" % clf.coef_.shape[1])
@@ -573,7 +572,9 @@ class Trainer:
         return clf_descr, score, train_time, test_time
     
     def plot_results(self, results):
-        # make some plots
+        """ Plot the results of the tests
+            @param: results list of lists of results
+            """
         indices = np.arange(len(results))
 
         results = [[x[i] for x in results] for i in range(4)]
@@ -597,12 +598,10 @@ class Trainer:
 
         for i, c in zip(indices, clf_names):
             plt.text(-.3, i, c)
-
-        # plt.savefig("./data/plots/plots.png")
-
         plt.show()
 
     def save_to_file():
+        """ Integrate the save plots to the class, not used as of now"""
         with open("./oulook.txt", "w") as text_file:
             print("test", file=text_file)
 
@@ -622,30 +621,30 @@ trainer.train()
 
 load_file("./otulook.txt")
 
-"""
-semhash_featurizer = SemhashFeaturizer()
-
-split = {}
-
-with open('test.csv') as csvfile:
-    readCSV = csv.reader(csvfile, delimiter='\t')
-    all_rows = list(readCSV)
-    X_test = [a[0] for a in all_rows]
-    y_test = [a[1] for a in all_rows]
-
-with open('train.csv') as csvfile:
-    readCSV = csv.reader(csvfile, delimiter='\t')
-    all_rows = list(readCSV)
-    X_train = [a[0] for a in all_rows]
-    y_train = [a[1] for a in all_rows]
-
-
-splits = [{"train": {"X": X_train, "y": y_train},
-                           "test": {"X": X_test, "y": y_test}}]
-
-trainer = Trainer(splits, semhash_featurizer, lang="en",
-         path="/home/dash/projects/imli/data/plots",
-                  name="Ubuntu")
-
-trainer.train()
-"""
+# """
+# semhash_featurizer = SemhashFeaturizer()
+# 
+# split = {}
+# 
+# with open('test.csv') as csvfile:
+#     readCSV = csv.reader(csvfile, delimiter='\t')
+#     all_rows = list(readCSV)
+#     X_test = [a[0] for a in all_rows]
+#     y_test = [a[1] for a in all_rows]
+# 
+# with open('train.csv') as csvfile:
+#     readCSV = csv.reader(csvfile, delimiter='\t')
+#     all_rows = list(readCSV)
+#     X_train = [a[0] for a in all_rows]
+#     y_train = [a[1] for a in all_rows]
+# 
+# 
+# splits = [{"train": {"X": X_train, "y": y_train},
+#                            "test": {"X": X_test, "y": y_test}}]
+# 
+# trainer = Trainer(splits, semhash_featurizer, lang="en",
+#          path="/home/dash/projects/imli/data/plots",
+#                   name="Ubuntu")
+# 
+# trainer.train()
+# """
