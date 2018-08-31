@@ -53,7 +53,13 @@ import pickle
 nlp_spacy_en = None
 nlp_spacy_es = None
 
+
 def get_spacy_model(lang="en"):
+    """Set the spacy model in use.
+    
+        @param: lang A string to set English or Spanish model (default 'en')
+        
+        return the selected spacy model en/es"""
     global nlp_spacy_en
     global nlp_spacy_es
     if lang == "en":
@@ -65,14 +71,17 @@ def get_spacy_model(lang="en"):
             nlp_spacy_es = spacy.load(lang)
         return nlp_spacy_es
 
-
-# In[97]:
-
-
-
 class MeraDataset():
+    """ Class to find typos based on the keyboard distribution, for QWERTY style keyboards
+    
+        It's the actual test set as defined in the paper that we comparing against."""
 
     def __init__(self, dataset_path, n_splits=3, ratio=0.3, augment=False):
+        """ Instantiate the object.
+            @param: dataset_path The directory which contains the data set.
+            @param: n_splits For the stratified_split, not in use here (default 0.3).
+            @param: ratio  For the stratified_split, not in use here (default 0.3).
+            @param: augment If the daa set should be augmented (default False)"""
         self.dataset_path = dataset_path
         self.augment = augment
         self.n_splits = n_splits
@@ -92,6 +101,10 @@ class MeraDataset():
 
 
     def get_nearest_to_i(self, keyboard_cartesian):
+        """ Get the nearest key to the one read.
+            @params: keyboard_cartesian The layout of the QWERTY keyboard for English
+            
+            return dictionary of eaculidean distances for the characters"""
         nearest_to_i = {}
         for i in keyboard_cartesian.keys():
             nearest_to_i[i] = []
@@ -101,6 +114,13 @@ class MeraDataset():
         return nearest_to_i
 
     def _shuffle_word(self, word, cutoff=0.9):
+        """ Rearange the given characters in a word simulating typos given a probability.
+        
+            @param: word A single word coming from a sentence
+            @param: cutoff The cutoff probability to make a change (default 0.9)
+            
+            return The word rearranged 
+            """
         word = list(word.lower())
         if random.uniform(0, 1.0) > cutoff:
             loc = np.random.randint(0, len(word))
@@ -109,11 +129,21 @@ class MeraDataset():
         return ''.join(word)
 
     def _euclidean_distance(self, a, b):
+        """ Calculates the euclidean between 2 points in the keyboard
+            @param: a Point one 
+            @param: b Point two
+            
+            return The euclidean distance between the two points"""
         X = (self.keyboard_cartesian[a]['x'] - self.keyboard_cartesian[b]['x']) ** 2
         Y = (self.keyboard_cartesian[a]['y'] - self.keyboard_cartesian[b]['y']) ** 2
         return math.sqrt(X + Y)
 
     def _augment_sentence(self, sentence, num_samples):
+        """ Augment the dataset of with a sentence shuffled
+            @param: sentence The sentence from the set
+            @param: num_samples The number of sentences to genererate
+            
+            return A set of augmented sentences"""
         sentences = []
         for _ in range(num_samples):
             sentences.append(' '.join([self._shuffle_word(item) for item in sentence.split(' ')]))
@@ -121,6 +151,12 @@ class MeraDataset():
         return sentences + [sentence]
 
     def _augment_split(self, X_train, y_train, num_samples=1000):
+        """ Split the aumented train dataset
+            @param: X_train The full array of sentences
+            @param: y_train The train labels in the train dataset
+            @param: num_samples the number of new sentences to create (default 1000)
+            
+            return Augmented training dataset"""
         Xs, ys = [], []
         for X, y in zip(X_train, y_train):
             tmp_x = self._augment_sentence(X, num_samples)
@@ -128,9 +164,13 @@ class MeraDataset():
         return Xs, ys
 
     def load(self):
+        
         with open('test.csv') as csvfile:
             readCSV = csv.reader(csvfile, delimiter='\t')
             all_rows = list(readCSV)
+            for i in all_rows:
+                if i ==  28823:
+                    print(all_rows[i])
             X_test = [a[0] for a in all_rows]
             y_test = [a[1] for a in all_rows]
 
@@ -181,7 +221,7 @@ class Dataset():
         self.splits = self.stratified_split(self.X, self.y, self.n_splits, self.ratio)
     
     def load(self):
-        with open(self.dataset_path, "r") as f:
+        with open(self.dataset_path, "r", encoding='utf8') as f:
             dataset = json.load(f)
             X = [sample["text"] for sample in dataset["sentences"]]
             y = [sample["intent"] for sample in dataset["sentences"]]
@@ -301,7 +341,7 @@ def load_file(name):
 
 
 class Trainer:
-    def __init__(self, splits, featurizer, path="data/plots", lang="en", name="default"):
+    def __init__(self, splits, featurizer, path="./data/plots", lang="en", name="default"):
         self.path = os.path.join(path, name)
         if not os.path.exists(self.path): os.makedirs(self.path)
         self.splits = splits
