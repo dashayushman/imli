@@ -620,31 +620,3 @@ trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots",
 trainer.train()
 
 load_file("./otulook.txt")
-
-# """
-# semhash_featurizer = SemhashFeaturizer()
-# 
-# split = {}
-# 
-# with open('test.csv') as csvfile:
-#     readCSV = csv.reader(csvfile, delimiter='\t')
-#     all_rows = list(readCSV)
-#     X_test = [a[0] for a in all_rows]
-#     y_test = [a[1] for a in all_rows]
-# 
-# with open('train.csv') as csvfile:
-#     readCSV = csv.reader(csvfile, delimiter='\t')
-#     all_rows = list(readCSV)
-#     X_train = [a[0] for a in all_rows]
-#     y_train = [a[1] for a in all_rows]
-# 
-# 
-# splits = [{"train": {"X": X_train, "y": y_train},
-#                            "test": {"X": X_test, "y": y_test}}]
-# 
-# trainer = Trainer(splits, semhash_featurizer, lang="en",
-#          path="/home/dash/projects/imli/data/plots",
-#                   name="Ubuntu")
-# 
-# trainer.train()
-# """
