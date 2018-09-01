@@ -1,7 +1,4 @@
-
 # coding: utf-8
-
-# In[96]:
 
 import csv
 import os
@@ -28,10 +25,6 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.neighbors.nearest_centroid import NearestCentroid
-
-# from sklearn.model_selection import StratifiedShuffleSplit
-# from sklearn.feature_extraction.text import TfidfVectorizer
-
 from sklearn.linear_model import RidgeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
@@ -211,9 +204,6 @@ class MeraDataset():
         self.X_train = self.process_batch(self.X_train)
         self.X_test = self.process_batch(self.X_test)
 
-        #self.X_test, self.y_test = self._augment_split(self.X_test,
-        # self.y_test)
-
         splits = [{"train": {"X": self.X_train, "y": self.y_train},
                    "test": {"X": self.X_test, "y": self.y_test}}]
         return splits
@@ -266,7 +256,6 @@ class Dataset():
         skf.get_n_splits(X, y)
         splits = []
         for train_index, test_index in skf.split(X, y):
-            # print("TRAIN:", train_index, "\n\n", "TEST:", test_index, "\n\n")
             X_train, X_test = [X[i] for i in train_index], [X[i] for i in test_index]
             y_train, y_test = [y[i] for i in train_index], [y[i] for i in test_index]
             # add augmentation code here
@@ -429,7 +418,6 @@ class Trainer:
             X_train, y_train, X_test, y_test = self.get_X_andy_from_split(split)
             print("Train Size: {}\nTest Size: {}".format(X_train.shape[0], X_test.shape[0]))
             results = []
-            #alphas = np.array([1,0.1,0.01,0.001,0.0001,0])
             knn=KNeighborsClassifier(n_neighbors=5)
 
             for clf, name in [  
