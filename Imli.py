@@ -169,7 +169,7 @@ class MeraDataset():
             X_test = [a[0] for a in all_rows]
             y_test = [a[1] for a in all_rows]
 
-        with open('train.csv') as csvfile:
+        with open('train.csv', encoding="utf8") as csvfile:
             readCSV = csv.reader(csvfile, delimiter='\t')
             all_rows = list(readCSV)
             X_train = [a[0] for a in all_rows]
@@ -348,7 +348,8 @@ class W2VFeaturizer:
             @param: x list of strings 
             
             return np.array from a spacy model as vectors"""
-        return np.array([get_spacy_model(self.lang)(s).vector for s in x])
+        np_val = np.array([get_spacy_model(self.lang)(s).vector for s in x])
+        return np_val
 
 X, y = ["hello", "I am a boy"], ["A", "B"]
 glove_path = ""
@@ -459,6 +460,7 @@ class Trainer:
             results.append(self.benchmark(SGDClassifier(alpha=.0001, n_iter=50,
                                                    penalty="elasticnet"),
                                      X_train, y_train, X_test, y_test))
+            self.results = results
             self.plot_results(results)
 
 #             """
@@ -560,7 +562,7 @@ class Trainer:
         return clf_descr, score, train_time, test_time
     
     def plot_results(self, results):
-        """ Plot the results of the tests
+        """ Plot the results of the tests in a horizontal fashion
             @param: results list of lists of results
             """
         indices = np.arange(len(results))
@@ -586,12 +588,48 @@ class Trainer:
 
         for i, c in zip(indices, clf_names):
             plt.text(-.3, i, c)
+        plt.savefig("./plottedResultsHor.png", format="png")
         plt.show()
 
     def save_to_file():
-        """ Integrate the save plots to the class, not used as of now"""
+        """ Integrate the save results to the class, not used as of now"""
         with open("./oulook.txt", "w") as text_file:
             print("test", file=text_file)
+        
+    def plot_ver_bars(self,results):
+        """ Plot the results of the tests in a vertical fashion
+            @param: results list of lists of results"""
+        indices = np.arange(len(results))
+
+        results = [[x[i] for x in results] for i in range(len(results))]
+
+        save_file("outlook.txt", results)
+        clf_names, score, training_time, test_time = results
+        print(results, "func", indices, "indices", clf_names, "clf_names" )
+        training_time = np.array(training_time) / np.max(training_time)
+        test_time = np.array(test_time) / np.max(test_time)
+
+        plt.figure(figsize=(12, 8))
+        plt.title("Score")
+        plt.bar(indices, score, .2, label="classifiers", color='navy')
+        plt.bar(indices + .3, training_time, .2, label="training time",
+                 color='c')
+        plt.bar(indices + .6, test_time, .2, label="test time", color='darkorange')
+        plt.xlabel("Classifiers used")
+        plt.ylabel("Score")
+        plt.xticks(())
+        plt.legend(loc='best')
+        plt.subplots_adjust(left=.05)
+        plt.subplots_adjust(top=.95)
+        plt.subplots_adjust(bottom=.15)
+
+        for i, c in zip(indices, clf_names):
+            plt.text(i, -.05, c)
+            # print(i,c) #to set the text of the plots i needed to check them
+            # plt.savefig("./plots/"+c+".png", format="png")
+        plt.savefig("./plottedResultsVert.png", format="png")
+        plt.show()
+        
 
 save_file("test.txt",{"hello":42})
 semhash_featurizer = SemhashFeaturizer()
@@ -607,4 +645,9 @@ trainer = Trainer(splits, semhash_featurizer, lang="en", path="./data/plots",
 
 trainer.train()
 
+trainer.plot_ver_bars(trainer.results)
+print(trainer.results)
+print(len(trainer.results))
 load_file("./otulook.txt")
+print("********")
+print(len(trainer.results), "len", trainer.results, "full", trainer.results[3])
