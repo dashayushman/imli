@@ -124,7 +124,7 @@ Tubes==0.2.0
 Twisted==18.4.0.dev0
 typing==3.6.2
 ujson==1.35
-urllib3==1.22
+urllib3==1.26.5
 watchdog==0.8.3
 wcwidth==0.1.7
 webencodings==0.5.1
